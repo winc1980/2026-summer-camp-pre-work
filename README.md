@@ -15,9 +15,17 @@
 
 ## 開発環境
 
-**Docker + VS Code Dev Containers** を使います。ローカルに何もインストールしません。
+**Docker + VS Code Dev Containers** を使います。
+C のコンパイラや BlocksDS SDK はコンテナの中に入っているので、ローカルには入れません。
 
-→ セットアップは [12 章](docs/12-devcontainer.md) を読んでください。**まずこれからです。**
+ただし、**その土台になるものはローカルに入れる必要があります。**
+
+- Docker Desktop
+- VS Code ＋ Dev Containers 拡張
+- melonDS（DS エミュレータ）
+- **Windows の人は WSL2**
+
+→ 手順は [12 章](docs/12-devcontainer.md) にあります。**合宿前にまずこれを終わらせてください。**
 
 ---
 

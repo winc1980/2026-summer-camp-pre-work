@@ -5,6 +5,7 @@
 >
 > **ゴール**
 >
+> - ローカルに Docker / VS Code / melonDS（Windows なら WSL2 も）が入る
 > - Dev Container が起動する
 > - `make` で `.nds` ができる
 > - melonDS で起動して「Hello, DS!」が出る
@@ -13,37 +14,104 @@
 
 ## 12.1 なにを使うのか
 
-**ローカルには何もインストールしません。** Docker のコンテナの中に開発環境が全部入っています。
+**コンパイラや SDK はローカルに入れません。** それらは Docker のコンテナの中に入っています。
+ただし、**そのコンテナを動かすための道具はローカルに入れる必要があります**（12.2）。
 
 ```
-あなたの PC                          コンテナの中（Ubuntu）
-┌──────────────────┐              ┌────────────────────────────┐
-│ VS Code          │─── 接続 ────▶│ arm-none-eabi-gcc          │
-│ melonDS          │              │ libnds / maxmod            │
-│ プロジェクトの   │◀── 共有 ────▶│ ndstool / grit / mmutil    │
-│ フォルダ         │   (/work)    │ clangd（補完用）           │
-└──────────────────┘              └────────────────────────────┘
+あなたの PC（ローカルに入れるもの）      コンテナの中（入れなくていいもの）
+┌──────────────────────────┐          ┌────────────────────────────┐
+│ Docker Desktop           │          │ arm-none-eabi-gcc          │
+│ VS Code + Dev Containers │─ 接続 ──▶│ libnds / maxmod            │
+│ melonDS                  │          │ ndstool / grit / mmutil    │
+│ (Windows なら WSL2)      │          │ clangd / gcc               │
+│                          │          │                            │
+│ プロジェクトのフォルダ   │◀─ 共有 ─▶│ /work                      │
+└──────────────────────────┘          └────────────────────────────┘
 ```
 
-- **ビルドはコンテナの中**でやります
-- **`.nds` はホストのフォルダに出てきます**（フォルダを共有しているので）
-- **melonDS はホストで動かします**（コンテナに画面はありません）
+| | ローカル | コンテナ |
+|---|---|---|
+| コードを書く | VS Code | — |
+| **ビルドする（`make`）** | — | ✅ |
+| C のコンパイラ・BlocksDS SDK | 不要 | ✅ |
+| **`.nds` を実行する** | melonDS | — （コンテナに画面はありません） |
+| プロジェクトのファイル | ✅ 実体はここ | ✅ `/work` として見えている |
 
-この構成の良いところは、**全員がまったく同じ環境になる**ことです。
-「自分の PC だけビルドが通らない」が起きません。
+ビルドで出来た `.nds` は、フォルダを共有しているので**ホスト側にもそのまま現れます。**
+それを melonDS にドラッグ&ドロップする、という流れです。
+
+この構成の利点は、**チーム全員のビルド環境が完全に同じになる**ことです。
+「自分の PC だけ通らない」が起きません。ローカルに入れるものも、
+Docker / VS Code / melonDS の 3 つ（＋Windows なら WSL2）だけで済みます。
 
 ---
 
-## 12.2 事前に入れるもの
+## 12.2 ローカルに入れるもの
 
-| ソフト | 用途 |
-| --- | --- |
-| [Docker Desktop](https://www.docker.com/products/docker-desktop/) | コンテナを動かす |
-| [VS Code](https://code.visualstudio.com/) | エディタ |
-| VS Code 拡張 [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) | コンテナに接続する |
-| [melonDS](https://melonds.kuribo64.net/) | DS エミュレータ |
+**合宿前にここまで終わらせてください。** 全部無料です。
 
-Windows の人は Docker Desktop の **WSL2 バックエンド**を有効にしてください（既定で有効です）。
+| ソフト | 用途 | 必須? |
+|---|---|---|
+| [Docker Desktop](https://www.docker.com/products/docker-desktop/) | コンテナを動かす | **必須** |
+| [VS Code](https://code.visualstudio.com/) | エディタ | **必須** |
+| VS Code 拡張 [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) | コンテナに接続する | **必須** |
+| [melonDS](https://melonds.kuribo64.net/) | DS エミュレータ。作った ROM を動かす | **必須** |
+| WSL2 | Docker Desktop の土台 | **Windows のみ必須** |
+
+**ディスクは 6GB 程度空けておいてください**（コンテナのイメージが約 1.8GB、
+Docker Desktop 本体とキャッシュで数 GB）。
+
+### Windows の人
+
+**WSL2 が要ります。** Docker Desktop は WSL2 の上で動くためです。
+
+```powershell
+# PowerShell を管理者として実行
+wsl --install
+```
+
+そのあと **PC を再起動**してから Docker Desktop をインストールしてください。
+Docker Desktop の設定で **Settings → General → Use the WSL 2 based engine** に
+チェックが入っていることを確認します（通常は既定でオンです）。
+
+> **プロジェクトのフォルダは WSL2 の中に置いてください。**
+> Windows 側（`C:\Users\...`）に置くとファイルアクセスが遅く、ビルドが数倍時間がかかります。
+>
+> ```bash
+> # Ubuntu(WSL) のターミナルで
+> cd ~
+> git clone <このリポジトリ>
+> code c-lecture        # ここから VS Code を開く
+> ```
+>
+> 出来た `.nds` は、エクスプローラーのアドレス欄に `\\wsl$` と打つと見えます。
+> melonDS は **Windows 側のアプリとして**起動してください（WSL の中では動きません）。
+
+### macOS の人
+
+Docker Desktop をインストールするだけです。
+**Intel / Apple Silicon どちらでもネイティブに動きます**（イメージが両対応です）。
+
+melonDS は初回起動時に Gatekeeper に止められることがあります。
+その場合は「システム設定 → プライバシーとセキュリティ」から許可してください。
+
+### Linux の人
+
+Docker Desktop でも、Docker Engine + docker-compose でも構いません。
+`docker` をパスワード無しで使えるようにしておいてください。
+
+```bash
+sudo usermod -aG docker $USER   # 実行後に再ログイン
+```
+
+melonDS はディストリのパッケージか、公式サイトのバイナリで入れてください。
+
+### 入ったか確認する
+
+```bash
+docker --version        # Docker version 2x.x.x
+docker run --rm hello-world   # "Hello from Docker!" と出れば OK
+```
 
 ---
 
@@ -314,7 +382,10 @@ wf-pacman -Ss blocksds
 
 | 症状 | 対処 |
 | --- | --- |
-| 「Reopen in Container」が出ない | `devcontainer.json` が `.devcontainer/` の中にあるか確認 |
+| `docker: command not found` | Docker Desktop が入っていない／起動していない（12.2） |
+| Windows で Docker Desktop が起動しない | WSL2 が入っていない。`wsl --install` して再起動（12.2） |
+| Windows でビルドがやたら遅い | プロジェクトが `C:\Users\...` にある。WSL2 の中（`~/`）に移す（12.2） |
+| 「Reopen in Container」が出ない | Dev Containers 拡張が入っているか、`devcontainer.json` が `.devcontainer/` の中にあるか確認 |
 | コンテナのビルドが遅い | 初回は 5〜15 分。2 回目以降はキャッシュが効いて数秒 |
 | `Permission denied`（ファイルが作れない） | ホスト側のユーザー ID が 1000 か確認（`id -u`）。違うなら Dockerfile の `useradd -u 1000` を合わせる |
 | `missing separator`（Makefile） | インデントがスペースになっている。**タブ**に直す |
@@ -330,6 +401,7 @@ wf-pacman -Ss blocksds
 
 ### 到達確認
 
+- [ ] Docker Desktop が起動している（Windows なら WSL2 も入っている）
 - [ ] Dev Container が起動して `/work` にいる
 - [ ] `make` が通って `.nds` ができる
 - [ ] melonDS で起動して文字が出る
