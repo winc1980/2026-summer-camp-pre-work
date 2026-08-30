@@ -1,0 +1,7 @@
+# ビルド成果物
+build/
+*.nds
+*.elf
+*.map
+*.dump
+compile_commands.json

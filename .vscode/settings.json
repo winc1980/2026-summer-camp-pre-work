@@ -1,0 +1,15 @@
+{
+    "editor.formatOnSave": true,
+    "[markdown]": {
+        "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
+    },
+    "cSpell.words": [
+        "eabi",
+        "GBATEK",
+        "Lerp",
+        "libnds",
+        "malloc",
+        "maxmod",
+        "picolibc"
+    ]
+}
