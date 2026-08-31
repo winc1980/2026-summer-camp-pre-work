@@ -1,12 +1,15 @@
 {
   "name": "nds",
-  "build": { "dockerfile": "Dockerfile" },
-
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
   "workspaceFolder": "/work",
   "workspaceMount": "source=${localWorkspaceFolder},target=/work,type=bind",
-
   "remoteUser": "dev",
-
+  "containerEnv": {
+    "WONDERFUL_TOOLCHAIN": "/opt/wonderful",
+    "BLOCKSDS": "/opt/wonderful/thirdparty/blocksds/core"
+  },
   "customizations": {
     "vscode": {
       "extensions": [
@@ -20,7 +23,9 @@
           "--query-driver=/opt/wonderful/toolchain/gcc-arm-none-eabi/bin/arm-none-eabi-*"
         ],
         "C_Cpp.intelliSenseEngine": "disabled",
-        "files.watcherExclude": { "**/build/**": true }
+        "files.watcherExclude": {
+          "**/build/**": true
+        }
       }
     }
   }
